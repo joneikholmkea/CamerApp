@@ -19,20 +19,33 @@
  *  - Do not install new packages.
  *  - Broke everything? Copy groups/_starter/CameraStarter.tsx back into this file.
  */
-import { useState } from 'react';
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
-import { CameraView } from 'expo-camera';
-import { PermissionGate, pickFromGallery, useCameraSetup } from '../../components/shared';
+import { useState } from "react";
+import { Image, Pressable, StyleSheet, Text, View } from "react-native";
+import { CameraView } from "expo-camera";
+import {
+  PermissionGate,
+  pickFromGallery,
+  useCameraSetup,
+} from "../../components/shared";
 
 // ✏️ Change this to rename your screen and pick your emoji on the home screen.
 export const meta = {
-  title: 'Group 6',
-  emoji: '🍩',
+  title: "Wanted!",
+  emoji: "🤠",
 };
+
+// The silly crimes that can show up on the poster. Add your own!
+const CRIMES = [
+  "Kommer 30 minutter forsent til undervisning",
+  "Kl. 9 har du allerede drukket 2 redbulls og en kop kaffe",
+  "Glemt din computeroplader",
+  "Skal på arbejde så jeg har ikke tid til gruppearbejde",
+];
 
 export default function CameraScreen() {
   // Camera helpers: permission, a ref to the camera, and front/back switching.
-  const { permission, requestPermission, cameraRef, facing, toggleFacing } = useCameraSetup();
+  const { permission, requestPermission, cameraRef, facing, toggleFacing } =
+    useCameraSetup();
 
   // The URI (file path) of the last photo. null = no photo yet, show the camera.
   const [photoUri, setPhotoUri] = useState(null);
@@ -40,17 +53,26 @@ export default function CameraScreen() {
   // The camera needs a moment to start. We can't take a photo before it's ready.
   const [isCameraReady, setIsCameraReady] = useState(false);
 
+  // The silly crime written on the WANTED poster.
+  const [crime, setCrime] = useState("");
+
+  // Show a photo on the poster, together with a random crime.
+  function showPhoto(uri) {
+    setPhotoUri(uri);
+    setCrime(CRIMES[Math.floor(Math.random() * CRIMES.length)]);
+  }
+
   // Take a photo and remember where it was saved.
   async function takePhoto() {
     if (!cameraRef.current || !isCameraReady) return;
     const photo = await cameraRef.current.takePictureAsync({ quality: 0.5 });
-    setPhotoUri(photo.uri);
+    showPhoto(photo.uri);
   }
 
   // No camera (e.g. simulator)? Pick a photo from the gallery instead.
   async function pickPhoto() {
     const uri = await pickFromGallery();
-    if (uri) setPhotoUri(uri);
+    if (uri) showPhoto(uri);
   }
 
   // Go back to the camera.
@@ -64,11 +86,18 @@ export default function CameraScreen() {
   // ─────────────────────────────────────────────────────────────
   if (photoUri) {
     return (
-      <View style={styles.container}>
-        <Image source={{ uri: photoUri }} style={StyleSheet.absoluteFill} resizeMode="cover" />
+      <View style={styles.poster}>
+        <Text style={styles.wanted}>WANTED</Text>
+        <Text style={styles.subtitle}>DEAD OR ALIVE</Text>
 
-        {/* 🎨 YOUR PHOTO OVERLAY GOES HERE – anything rendered here appears on top of the photo
-            (frames, stickers, date stamps...). Use position: 'absolute' to place things. */}
+        <Image
+          source={{ uri: photoUri }}
+          style={styles.mugshot}
+          resizeMode="cover"
+        />
+
+        <Text style={styles.crime}>For: {crime}</Text>
+        <Text style={styles.reward}>REWARD $1.000.000</Text>
 
         <View style={styles.bottomBar}>
           <Pressable style={styles.textButton} onPress={retake}>
@@ -83,7 +112,10 @@ export default function CameraScreen() {
   // SCREEN 2: no photo yet → show the live camera
   // ─────────────────────────────────────────────────────────────
   return (
-    <PermissionGate permission={permission} requestPermission={requestPermission}>
+    <PermissionGate
+      permission={permission}
+      requestPermission={requestPermission}
+    >
       <View style={styles.container}>
         {/* The live camera. Don't put children inside CameraView –
             put overlays next to it (below), they're drawn on top. */}
@@ -129,47 +161,85 @@ export default function CameraScreen() {
 
 // All the styles for this screen. Change colors and sizes freely!
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: 'black' },
+  container: { flex: 1, backgroundColor: "black" },
+  wanted: {
+    position: "absolute",
+    bottom: 120,
+    left: 0,
+    right: 0,
+    textAlign: "center",
+    fontSize: 72,
+    fontWeight: "900",
+    color: "black",
+  },
   bottomBar: {
-    position: 'absolute',
+    position: "absolute",
     left: 0,
     right: 0,
     bottom: 40,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-around',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-around",
   },
   captureButton: {
     width: 80,
     height: 80,
     borderRadius: 40,
     borderWidth: 5,
-    borderColor: 'white',
-    alignItems: 'center',
-    justifyContent: 'center',
+    borderColor: "white",
+    alignItems: "center",
+    justifyContent: "center",
   },
-  captureInner: { width: 60, height: 60, borderRadius: 30, backgroundColor: 'white' },
+  captureInner: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: "white",
+  },
   capturePressed: { transform: [{ scale: 0.92 }] },
   captureDisabled: { opacity: 0.4 },
-  sideButton: { width: 64, alignItems: 'center' },
+  sideButton: { width: 64, alignItems: "center" },
   flipButton: {
-    position: 'absolute',
+    position: "absolute",
     top: 16,
     right: 16,
     width: 52,
     height: 52,
     borderRadius: 26,
-    backgroundColor: 'rgba(0,0,0,0.4)',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "rgba(0,0,0,0.4)",
+    alignItems: "center",
+    justifyContent: "center",
   },
   iconLabel: { fontSize: 26 },
-  smallLabel: { color: 'white', fontSize: 12, marginTop: 2 },
+  smallLabel: { color: "white", fontSize: 12, marginTop: 2 },
   textButton: {
-    backgroundColor: 'rgba(0,0,0,0.6)',
+    backgroundColor: "rgba(0,0,0,0.6)",
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 24,
   },
-  textButtonLabel: { color: 'white', fontSize: 18, fontWeight: '600' },
+  textButtonLabel: { color: "white", fontSize: 18, fontWeight: "600" },
+
+  // 🤠 The WANTED poster
+  poster: {
+    flex: 1,
+    backgroundColor: "#e8d3a3",
+    alignItems: "center",
+    paddingTop: 40,
+  },
+  wanted: {
+    fontSize: 72,
+    fontWeight: "900",
+    color: "#4a2c0f",
+    letterSpacing: 4,
+  },
+  subtitle: {
+    fontSize: 22,
+    fontWeight: "700",
+    color: "#4a2c0f",
+    marginBottom: 16,
+  },
+  mugshot: { width: 260, height: 300, borderWidth: 6, borderColor: "#4a2c0f" },
+  crime: { fontSize: 20, fontStyle: "italic", color: "#4a2c0f", marginTop: 16 },
+  reward: { fontSize: 32, fontWeight: "900", color: "#8b0000", marginTop: 8 },
 });
