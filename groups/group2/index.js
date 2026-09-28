@@ -70,6 +70,8 @@ export default function CameraScreen() {
         {/* 🎨 YOUR PHOTO OVERLAY GOES HERE – anything rendered here appears on top of the photo
             (frames, stickers, date stamps...). Use position: 'absolute' to place things. */}
 
+          <Image style={{width: "100%", height: "100%"}} source={require("./wanted_frame.png")} />
+
         <View style={styles.bottomBar}>
           <Pressable style={styles.textButton} onPress={retake}>
             <Text style={styles.textButtonLabel}>↩️ Retake</Text>
@@ -95,6 +97,8 @@ export default function CameraScreen() {
         />
 
         {/* 🎨 YOUR OVERLAY GOES HERE – anything rendered here appears on top of the camera */}
+          <Image style={{width: "100%", height: "100%"}} source={require("./wanted_frame.png")} />
+
 
         {/* Switch between front and back camera (top right). */}
         <Pressable style={styles.flipButton} onPress={toggleFacing}>
