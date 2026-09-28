@@ -38,7 +38,29 @@ export default function CameraScreen() {
   const [photoUri, setPhotoUri] = useState(null);
 
   // The camera needs a moment to start. We can't take a photo before it's ready.
-  const [isCameraReady, setIsCameraReady] = useState(false);
+  const [isCameraReady, setIsCameraReady] = useState(true);
+
+
+  const [count, setCount] = useState(null);
+  // Shows a countdown before taking the photo itself
+  function countdown() {
+    if (count !== null) return;   // ignorer tryk, mens nedtællingen kører
+
+    let n = 3;
+    setCount(n);
+
+    const id = setInterval(() => {
+      n -= 1;
+      if (n > 0) {
+        setCount(n)
+      } else {
+        clearInterval(id);
+        setCount(null);
+        takePhoto();
+      }
+    }, 1000)
+
+  }
 
   // Take a photo and remember where it was saved.
   async function takePhoto() {
@@ -74,6 +96,7 @@ export default function CameraScreen() {
           <Pressable style={styles.textButton} onPress={retake}>
             <Text style={styles.textButtonLabel}>↩️ Retake</Text>
           </Pressable>
+
         </View>
       </View>
     );
@@ -94,7 +117,11 @@ export default function CameraScreen() {
           onCameraReady={() => setIsCameraReady(true)}
         />
 
-        {/* 🎨 YOUR OVERLAY GOES HERE – anything rendered here appears on top of the camera */}
+        {count !== null && (
+            <View style={styles.countOverlay} pointerEvents="none">
+              <Text style={styles.countText}>{count}</Text>
+            </View>
+        )}
 
         {/* Switch between front and back camera (top right). */}
         <Pressable style={styles.flipButton} onPress={toggleFacing}>
@@ -109,18 +136,21 @@ export default function CameraScreen() {
           </Pressable>
 
           <Pressable
-            style={({ pressed }) => [
-              styles.captureButton,
-              pressed && styles.capturePressed,
-              !isCameraReady && styles.captureDisabled,
-            ]}
-            onPress={takePhoto}
-            disabled={!isCameraReady}
+              style={({ pressed }) => [
+                styles.captureButton,
+                pressed && styles.capturePressed,
+                !isCameraReady && styles.captureDisabled,
+              ]}
+              onPress={takePhoto}
+              disabled={!isCameraReady}
           >
             <View style={styles.captureInner} />
-          </Pressable>
+        </Pressable>
 
-          <View style={styles.sideButton} />
+          <Pressable style={styles.sideButtonX} onPress={countdown} disabled={!isCameraReady}>
+            <Text style={styles.iconLabel}>📸</Text>
+            <Text style={styles.smallLabel}>Count down</Text>
+          </Pressable>
         </View>
       </View>
     </PermissionGate>
@@ -148,10 +178,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  countOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  countText: {
+    color: 'white',
+    fontSize: 120,
+    fontWeight: 'bold',
+  },
   captureInner: { width: 60, height: 60, borderRadius: 30, backgroundColor: 'white' },
   capturePressed: { transform: [{ scale: 0.92 }] },
   captureDisabled: { opacity: 0.4 },
   sideButton: { width: 64, alignItems: 'center' },
+  sideButtonX:{width: 64, alignItems: 'center'},
   flipButton: {
     position: 'absolute',
     top: 16,
@@ -168,8 +209,23 @@ const styles = StyleSheet.create({
   textButton: {
     backgroundColor: 'rgba(0,0,0,0.6)',
     paddingHorizontal: 24,
-    paddingVertical: 12,
+    paddingVertical: 19,
     borderRadius: 24,
   },
+
   textButtonLabel: { color: 'white', fontSize: 18, fontWeight: '600' },
+
+  countdownWrap: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  countdown: {
+    fontSize: 120,
+    color: 'white',
+    fontWeight: 'bold',
+    textShadowColor: 'black',
+    textShadowRadius: 8,
+  },
+
 });
